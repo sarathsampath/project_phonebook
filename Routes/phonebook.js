@@ -1,6 +1,7 @@
 const phoneBookController = require("../Controllers/Phonebook");
 const express = require("express");
 const app = express();
+
 const Data = require("../Data/constants");
 const phoneBookResponseHelper = require("../Utils/responseHelper");
 async function displayContact(req, res) {
@@ -84,6 +85,15 @@ async function verifyMail(req,res)
   console.log("routes",status)
   res.send( status)
 }
+async function uploadFile(req,res)
+{
+  console.log("route start")
+  const avatar=req.files.avatar;
+  console.log(avatar);
+  let status=await phoneBookController.uploadFile(avatar)
+  console.log("route end",status)
+  res.send( status);
+  
+}
 
-
-module.exports = {verifyMail,validateMail, displayContact, displayAllContact,deleteContact, updateContact, addContact };
+module.exports = {uploadFile,verifyMail,validateMail, displayContact, displayAllContact,deleteContact, updateContact, addContact };

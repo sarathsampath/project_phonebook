@@ -8,6 +8,8 @@ var mailOtp=require("../Models/mailOtp")
 const dotenv = require("dotenv");
 const Mail = require("nodemailer/lib/mailer");
 dotenv.config();
+const bcrypt=require("bcryptjs")
+const jwt=require("jsonwebtoken")
 async function displayContact(number) {
   try {
     console.log("service :displayContact:start");
@@ -40,11 +42,21 @@ async function displayAllContact() {
 }
 async function addContact(name,mail,password,mobilenumbers, Address) {
   try {
+    const secretKey="sarath"
     console.log("service :AddContact:start");
     var Maildata = await userModel.find({
       mail: mail,
     });
+    if(Maildata!="")
+    {
+      var status = phoneBookResponseHelper.responseHelperFailure(false,"MailId Already Registered", 404);
+    return status;
+    }
+  
+    let value1=""
     console.log("service",Maildata)
+    var salt = bcrypt.genSaltSync(10);
+    var hash = bcrypt.hashSync(password, salt);
     if(Maildata=="")
     {
     var date = new Date();
@@ -52,12 +64,19 @@ async function addContact(name,mail,password,mobilenumbers, Address) {
       ids: shortid.generate(),
       name: name,
       mail:mail,
-      password:password,
+      password:hash,
       AddedDate: date,
       Address: Address,
       mobilenumbers: mobilenumbers,
       isActive:false,
     });
+    console.log("asd",value1)
+  const ss=await jwt.sign({
+    id:register.ids
+  },secretKey,{expiresIn:36000}
+)
+console.log(ss)
+   console.log(register)
     
   var data1 = await userModel.find({
      "mobilenumbers.number": mobilenumbers[0].number,
@@ -67,8 +86,8 @@ async function addContact(name,mail,password,mobilenumbers, Address) {
       var status = phoneBookResponseHelper.responseHelperFailure(false,"Mobile Number Already Registered", 404);
     return status;
     } else {
-     const savedUser = await register.save();
-      console.log("service :AddContact:status" + savedUser);
+    const savedUser = await register.save();
+      console.log("service :AddContact:status");
       console.log("service :AddContact:end");
       var status = phoneBookResponseHelper.responseHelperSuccess(
         true,
@@ -77,16 +96,8 @@ async function addContact(name,mail,password,mobilenumbers, Address) {
       );
       return status;
     }
-  }
-  else{
-    var status = phoneBookResponseHelper.responseHelperFailure(
-      false,
-      "Mail Id Already Exists",
-      400   
-    );
-    return status;
-  }
 
+  }
   } catch (err) {
     console.log(err);
     var status = phoneBookResponseHelper.responseHelperFailure(false, err, 404);
@@ -216,6 +227,7 @@ async function verifyMail(mail,otp)
   {
     var status1=await userModel.updateOne({mail:mail},{isActive:true});
     console.log(status1)
+    var ss=await mailOtp.deleteOne({Mail:mail})
     var status =await phoneBookResponseHelper.responseHelperSuccess(true,"Mail Verified",200);
     return status;
 
@@ -234,4 +246,37 @@ catch (err) {
 }
 }
 
-module.exports = {validateMail,verifyMail,displayContact, displayAllContact,deleteContact, updateContact, addContact };
+async function uploadFile(avatar)
+
+{
+  
+  return new Promise((resolve,reject)=>
+  {var id=123;
+    var ss={
+      name:id+".pdf",
+      data:avatar.data
+    }
+  console.log("service start")
+ var ss=avatar.mv("C:/Users/sarat/OneDrive/Desktop/phonebook/"+ss.name,async function(err) {
+    if (err)
+    {
+      var status=await phoneBookResponseHelper.responseHelperFailure(false,"File not Uploaded",400);
+      console.log("service end")
+      resolve(status);
+    }
+    else{
+      var status=await phoneBookResponseHelper.responseHelperSuccess(true,"file uploaded",200);
+      console.log(":file uploaded",status)
+      console.log("service end")
+      resolve( status);
+    }
+  
+});}
+)
+}
+
+
+
+
+
+module.exports = {uploadFile,validateMail,verifyMail,displayContact, displayAllContact,deleteContact, updateContact, addContact };

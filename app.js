@@ -1,20 +1,30 @@
-
 const express=require("express");
 const app=express();
-const cors=require("cors")
-
+const cors=require("cors");
 app.use(cors())
-const dotenv=require("dotenv");
-const Auth=require("./Utils/Auth");
+const fileupload = require('express-fileupload')
+app.use(fileupload())
 const bodyparser=require("body-Parser");
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true}));
-dotenv.config();
 app.use(express.json());
-var dbs=require("./Utils/db_connection");
+const Auth=require("./Utils/Auth");
+var dbs=require("./Utils/db_connection");   
+const phoneBookRoute=require("./Routes/Phonebook")
+
+
+
+app.post("/uploadfile",phoneBookRoute.uploadFile)
+
+
+
+app.get('/download', function(req, res){
+        console.log("start:downloadFIle")
+        const file = "C:/Users/sarat/OneDrive/Desktop/phonebook/ss.pdf";
+        res.sendFile(file); 
+      });
 dbs.getDbConnection();
 
-const phoneBookRoute=require("./Routes/Phonebook")
 
 async function check(req,res,next)
 {
@@ -27,11 +37,10 @@ if(data==false)
     
 }
 else{
-   // console.log("time")
     res.send(data)
 }
 }
-//display all users 
+
 app.post("/users",check,function(req,res,next)
 {   
     

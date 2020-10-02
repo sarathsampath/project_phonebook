@@ -108,4 +108,23 @@ console.log("controller",status)
 return status;
 }
 
-module.exports = {verifyMail,validateMail, displayContact,displayAllContact ,deleteContact, updateContact, addContact };
+async function uploadFile(avatar)
+{
+console.log("controllers start")
+if( avatar.size>10240000)
+{
+  
+  var s=phoneBookResponseHelper.responseHelperFailure(false,"file size is large",400)
+  return s;
+}
+if(avatar.mimetype!="application/pdf")
+{
+  var s=phoneBookResponseHelper.responseHelperFailure(false,"pdf only allowed",400)
+  return s;
+}
+var status=await phoneBookService.uploadFile(avatar);
+console.log("controller end",status)
+return status;
+
+}
+module.exports = {uploadFile,verifyMail, validateMail, displayContact,displayAllContact ,deleteContact, updateContact, addContact };
